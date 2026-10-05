@@ -1,0 +1,525 @@
+/*
+ * Recetas. Mismo lenguaje visual que l-list, l-tcg y l-games: la paleta del
+ * portal —fondo oscuro con degradados, superficies de cristal y el azul de iOS
+ * como acento— y los mismos tres temas, con los mismos nombres y los mismos
+ * tonos.
+ *
+ * Que se llamen igual y se vean igual no es una casualidad ni una copia
+ * perezosa: es la unica forma de que "Crystal" signifique algo. En cuanto dos
+ * servicios llamen Crystal a dos cosas distintas, deja de ser un tema y pasa a
+ * ser dos decoraciones parecidas.
+ *
+ * Esta hoja es la COMUN —temas, barra, menu del avatar, armazon, carril,
+ * tablero, botones y el aviso flotante— y es casi la de l-list palabra por
+ * palabra. Lo propio de un recetario —ingredientes, pasos, escalador de
+ * raciones, modo cocina— esta en recetas.css, aparte y sin redefinir nada de
+ * aqui.
+ *
+ * ── La forma ───────────────────────────────────────────────────
+ *
+ * Dos columnas: el recetario a la izquierda y la receta abierta a la derecha.
+ * Por debajo de 52rem se turnan la pantalla, porque en un movil una receta con
+ * el carril robando cinco centimetros no se lee con las manos ocupadas.
+ */
+:root {
+  --bg: #0d0f1f;
+  --fg: #ffffff;
+  --muted: rgba(255, 255, 255, 0.72);
+  --tenue: rgba(255, 255, 255, 0.45);
+
+  --card: rgba(255, 255, 255, 0.08);
+  --card-solido: rgba(28, 30, 48, 0.94);   /* menus y capas sobre contenido */
+  --border: rgba(255, 255, 255, 0.16);
+  --hueco: rgba(255, 255, 255, 0.05);
+
+  --accent: #0a84ff;
+  --accent-fg: #ffffff;
+  --danger: #ff6482;
+  --bien: #30d158;
+
+  --radio: 1rem;
+  --cristal: blur(22px) saturate(160%);
+  --barra: 3.5rem;
+  --carril: 17rem;
+
+  color-scheme: dark;
+  accent-color: var(--accent);
+}
+
+/* ── Temas ──────────────────────────────────────────────────────────────────
+ *
+ * Las variables de arriba siguen siendo el tema por defecto. Estos dos bloques
+ * las sustituyen cuando <html> lleva data-tema, y ganan por especificidad
+ * aunque se escriban antes que cualquier otra regla que use :root.
+ */
+:root[data-tema="crystal"] {
+  --bg: #c7dcf2;                          /* el azul del portal, subido de luz */
+  --fg: #33465e;                          /* gris azulado: el negro puro pesa sobre claro */
+  --muted: rgba(51, 70, 94, 0.72);
+  --tenue: rgba(51, 70, 94, 0.48);
+  --card: rgba(255, 255, 255, 0.72);      /* cristal, no blanco */
+  --card-solido: rgba(255, 255, 255, 0.94);
+  /* Borde BLANCO y no gris: sobre cristal una linea clara lee como el canto
+     del panel, y una oscura como una grieta. */
+  --border: rgba(255, 255, 255, 0.7);
+  --hueco: rgba(13, 36, 64, 0.06);
+  --accent: #0060df;                      /* baja respecto al oscuro: aqui va sobre claro */
+  --accent-fg: #ffffff;
+  --danger: #c62a3c;
+  --bien: #0f7a4f;                        /* el verde claro del oscuro desapareceria aqui */
+  color-scheme: light;
+}
+
+:root[data-tema="dark-crystal"] {
+  --bg: #131a24;                          /* gris azulado, no negro */
+  --fg: #dbe6f4;
+  --muted: rgba(219, 230, 244, 0.68);
+  --tenue: rgba(219, 230, 244, 0.42);
+  --card: rgba(255, 255, 255, 0.07);
+  --card-solido: rgba(23, 32, 45, 0.94);
+  --border: rgba(255, 255, 255, 0.14);    /* el canto del cristal recogiendo luz */
+  --hueco: rgba(255, 255, 255, 0.05);
+  --accent: #4da3ff;                      /* sube: el azul profundo se apaga sobre oscuro */
+  --accent-fg: #08203a;
+  --danger: #ff6b60;
+  --bien: #5fd39a;
+  color-scheme: dark;
+}
+
+/* El fondo deja de ser plano, y no es adorno: las superficies son translucidas
+   y necesitan algo debajo que se transparente. Sobre un color liso, el mismo
+   blanco al 72% se veria como un gris cualquiera. */
+body {
+  background:
+    radial-gradient(1200px 800px at 15% -10%, #21306b 0%, rgba(33, 48, 107, 0) 60%),
+    radial-gradient(900px 700px at 110% 10%, #3b2a63 0%, rgba(59, 42, 99, 0) 55%),
+    var(--bg);
+  background-attachment: fixed;
+}
+:root[data-tema="crystal"] body {
+  background:
+    radial-gradient(1100px 760px at 12% -12%, #eef5ff 0%, rgba(238,245,255,0) 62%),
+    radial-gradient(900px 700px at 108% 6%, #d3e6ff 0%, rgba(211,230,255,0) 58%),
+    var(--bg);
+  background-attachment: fixed;
+}
+:root[data-tema="dark-crystal"] body {
+  background:
+    radial-gradient(1100px 760px at 12% -12%, #1d2a3a 0%, rgba(29,42,58,0) 62%),
+    radial-gradient(900px 700px at 108% 6%, #16212f 0%, rgba(22,33,47,0) 58%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* ── Base ───────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* La aplicacion ocupa la ventana y cada columna hace su propio scroll. */
+  overflow: hidden;
+}
+
+svg { width: 1.25rem; height: 1.25rem; fill: currentColor; flex: none; }
+
+.oculto {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+input, button, textarea { font: inherit; }
+
+/* ── Barra superior ─────────────────────────────────────────────────────── */
+
+.barra {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  height: calc(var(--barra) + env(safe-area-inset-top));
+  padding: 0 0.9rem;
+  padding-top: env(safe-area-inset-top);
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: var(--cristal);
+  -webkit-backdrop-filter: var(--cristal);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  font-weight: 650;
+  font-size: 1.02rem;
+}
+.marca-icono { fill: var(--accent); width: 1.4rem; height: 1.4rem; }
+
+.icono-boton {
+  display: grid;
+  place-items: center;
+  width: 2.25rem; height: 2.25rem;
+  padding: 0;
+  flex: none;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.icono-boton:hover { background: var(--hueco); color: var(--fg); }
+
+/* ── Menú del avatar ────────────────────────────────────────────────────── */
+
+.menu-usuario { position: relative; flex: none; }
+.avatar-boton {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.avatar {
+  width: 2rem; height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--hueco);
+}
+
+/* Las iniciales, para quien no tenga foto en el portal. Mismo tamano y misma
+   forma que la foto: al llegar la imagen, una sustituye a la otra sin que la
+   barra de un salto. */
+.avatar-iniciales {
+  display: grid;
+  place-items: center;
+  width: 2rem; height: 2rem;
+  color: var(--accent-fg);
+  background: var(--accent);
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 40;
+  min-width: 15rem;
+  padding: 0.4rem;
+  background: var(--card-solido);
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.7);
+  backdrop-filter: var(--cristal);
+  -webkit-backdrop-filter: var(--cristal);
+}
+.menu-quien {
+  display: block;
+  padding: 0.5rem 0.7rem 0.6rem;
+  line-height: 1.3;
+}
+.menu-quien small { display: block; color: var(--tenue); font-size: 0.75rem; }
+.menu-linea { margin: 0.3rem 0; border: 0; border-top: 1px solid var(--border); }
+.menu-forma { margin: 0; }
+
+.menu-opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  color: var(--fg);
+  text-align: left;
+  text-decoration: none;
+  background: transparent;
+  border: 0;
+  border-radius: 0.55rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.menu-opcion:hover { background: var(--hueco); }
+.menu-icono { width: 1.1rem; height: 1.1rem; fill: var(--muted); }
+
+/* El desplegable del tema: etiqueta a la izquierda, el puesto a la derecha y
+   la flecha girando al abrir. */
+.menu-desplegar { display: flex; align-items: center; gap: 0.5rem; }
+.menu-etiqueta { flex: 1 1 auto; }
+.menu-flecha {
+  width: 1rem; height: 1rem;
+  fill: var(--tenue);
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+.menu-desplegar[aria-expanded=true] .menu-flecha { transform: rotate(-90deg); }
+
+/* Sangrado para que se lea que cuelgan de la entrada de arriba. */
+.submenu { padding-left: 0.7rem; }
+.menu-tema {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  color: var(--fg);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 0.55rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.menu-tema:hover { background: var(--hueco); }
+.tema-nombre { flex: 1 1 auto; }
+
+/* La muestra de cada tema: un cuadradito con su propio color de fondo, para
+   que se vea a que se va a cambiar antes de cambiar. */
+.tema-muestra {
+  display: grid;
+  place-items: center;
+  width: 1.6rem; height: 1.6rem;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 0.4rem;
+}
+.tema-muestra svg { width: 0.95rem; height: 0.95rem; }
+.tema-muestra.oscuro { background: #0d0f1f; color: #ffffff; }
+.tema-muestra.crystal { background: #c7dcf2; color: #0060df; }
+.tema-muestra.dark-crystal { background: #131a24; color: #4da3ff; }
+.tema-mini { width: 1.25rem; height: 1.25rem; border-radius: 0.3rem; }
+.tema-mini svg { width: 0.8rem; height: 0.8rem; }
+
+.tema-tic { display: none; }
+.tema-tic svg { width: 1rem; height: 1rem; fill: var(--accent); }
+.menu-tema[aria-checked=true] .tema-tic { display: block; }
+.menu-tema[aria-checked=true] .tema-nombre { font-weight: 600; }
+
+/* ── Armazón ────────────────────────────────────────────────────────────── */
+
+.marco {
+  position: fixed;
+  top: calc(var(--barra) + env(safe-area-inset-top));
+  left: 0; right: 0; bottom: 0;
+  display: grid;
+  grid-template-columns: var(--carril) 1fr;
+}
+
+/* ── Carril del recetario ───────────────────────────────────────────────────── */
+
+.carril {
+  display: flex;
+  flex-direction: column;
+  padding: 0.8rem 0.6rem;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+
+.nueva-lista {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+  padding: 0.1rem 0.1rem 0.1rem 0.7rem;
+  background: var(--hueco);
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+}
+.nueva-lista:focus-within { border-color: var(--accent); background: transparent; }
+.nueva-lista input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.5rem 0;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  font-size: 0.88rem;
+}
+.nueva-lista input:focus { outline: none; }
+.nueva-lista input::placeholder { color: var(--tenue); }
+
+.listas { display: flex; flex-direction: column; gap: 0.15rem; }
+
+/*
+ * Una receta del carril.
+ *
+ * Pastilla muy redondeada, como las carpetas de un cliente de correo: es lo
+ * que hace que la activa se lea como una pieza y no como una fila subrayada.
+ * La categoria que va a su derecha la pinta recetas.css (.lista-etiqueta).
+ */
+.lista-enlace {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.55rem 0.8rem;
+  color: var(--muted);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.lista-enlace:hover { background: var(--hueco); color: var(--fg); }
+.lista-enlace.activa {
+  color: var(--fg);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  font-weight: 600;
+}
+.lista-nombre {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lista-enlace.activa 
+.carril-nota {
+  margin: 1rem 0.4rem;
+  color: var(--tenue);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.carril-velo { display: none; }
+
+/* ── Tablero ────────────────────────────────────────────────────────────── */
+
+.tablero { overflow-y: auto; }
+
+.vacio {
+  height: 100%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.8rem;
+  color: var(--tenue);
+}
+.vacio svg { width: 3rem; height: 3rem; opacity: 0.35; }
+.vacio p { margin: 0; font-size: 0.92rem; }
+
+.cabecera-lista { display: flex; align-items: center; gap: 0.4rem; }
+
+/*
+ * El titulo de la lista es un campo, no un titulo.
+ *
+ * Sin borde ni fondo hasta que se toca: se lee como un <h1> y se comporta como
+ * un input. Eso ahorra un boton de "renombrar" que se usaria una vez por lista
+ * y estaria ocupando sitio el resto del tiempo.
+ */
+.titulo-lista {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.3rem 0.5rem;
+  margin-left: -0.5rem;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.25;
+}
+.titulo-lista:hover { background: var(--hueco); }
+.titulo-lista:focus { background: transparent; border-color: var(--accent); outline: none; }
+
+/* ── Botones ──────────────────────────────────────────────────────── */
+
+/* Los dos de siempre: el de acento para la accion principal de un bloque y el
+   de lino para todo lo demas. Mismos tamanos y mismos radios que en l-list, que
+   es de donde vienen. */
+.boton {
+  padding: 0.5rem 1.1rem;
+  color: var(--accent-fg);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 0.6rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.boton-lino {
+  padding: 0.35rem 0.8rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.boton-lino:hover { color: var(--fg); background: var(--hueco); }
+
+/* ── El aviso flotante ──────────────────────────────────────────────────── */
+
+.recado {
+  position: fixed;
+  left: 50%;
+  bottom: 1.4rem;
+  transform: translateX(-50%);
+  z-index: 50;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 0.7rem 1.1rem;
+  color: var(--fg);
+  background: var(--card-solido);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 12px 34px -12px rgba(0, 0, 0, 0.8);
+  font-size: 0.86rem;
+  text-align: center;
+  backdrop-filter: var(--cristal);
+  -webkit-backdrop-filter: var(--cristal);
+}
+.recado.malo { border-color: color-mix(in srgb, var(--danger) 55%, transparent); color: var(--danger); }
+
+/* ── Estrecho ───────────────────────────────────────────────────────────── */
+
+.solo-estrecho { display: none; }
+
+@media (max-width: 52rem) {
+  .solo-estrecho { display: grid; }
+
+  .marco { grid-template-columns: 1fr; }
+
+  .carril {
+    position: fixed;
+    top: calc(var(--barra) + env(safe-area-inset-top));
+    bottom: 0; left: 0;
+    z-index: 25;
+    width: min(var(--carril), 82vw);
+    background: var(--card-solido);
+    backdrop-filter: var(--cristal);
+    -webkit-backdrop-filter: var(--cristal);
+    transform: translateX(-100%);
+    transition: transform 0.24s cubic-bezier(.2,.7,.3,1);
+  }
+  .carril.abierto { transform: none; }
+
+  .carril-velo {
+    display: block;
+    position: fixed;
+    inset: calc(var(--barra) + env(safe-area-inset-top)) 0 0 0;
+    z-index: 24;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .titulo-lista { font-size: 1.25rem; }
+}

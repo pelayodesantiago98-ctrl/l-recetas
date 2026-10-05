@@ -1,0 +1,112 @@
+/*
+ * Recetas · capa de acabado.
+ *
+ * Va SIEMPRE después de la hoja de la casa y no redefine nada de lo que allí
+ * se decidió: solo añade lo que no existía —respuesta al pulsar, entradas
+ * escalonadas, elevaciones, un anillo de foco único— y lo hace a través del
+ * puente de variables de aquí abajo, que es lo ÚNICO que cambia entre los
+ * servicios. El resto del fichero, de "NÚCLEO" para abajo, es idéntico en
+ * todos.
+ */
+
+/* ── Puente ──────────────────────────────────────────────────────────────── */
+:root {
+  --m-acento: var(--accent);
+  --m-acento-tinta: var(--accent-fg);
+  --m-tinta: var(--fg);
+  --m-linea: var(--border);
+  --m-panel-solido: var(--card-solido);
+  --m-sombra-tono: #000000;
+}
+:root[data-tema="crystal"] { --m-sombra-tono: #1d3a5c; }
+
+/* ── Propio de esta casa ─────────────────────────────────────────────────── */
+
+/* Aquí el <body> lleva overflow: hidden y quien se desplaza es cada columna,
+   así que el data-desplazado del guion no se activa nunca y no hay barra que
+   condensar. Es a propósito, no un olvido. Igual que en l-list. */
+
+/* El armazón entra al cargar. */
+.marco { animation: m-entra var(--m-largo) var(--m-curva) backwards; }
+
+/*
+ * Marcar un ingrediente o un paso.
+ *
+ * Es el gesto de esta aplicación: lo que se viene a hacer aquí es cocinar
+ * siguiendo una lista, así que es el único sitio donde el movimiento tiene que
+ * notarse. La casilla se llama igual que la de l-list —y se mueve igual— a
+ * propósito: es la misma cosa en las dos casas.
+ */
+.casilla { transition: background-color var(--m-corto) var(--m-curva),
+                       border-color var(--m-corto) var(--m-curva); }
+.casilla svg { transition: transform var(--m-medio) var(--m-rebote),
+                           opacity var(--m-corto) var(--m-curva); }
+
+/*
+ * La raya del ingrediente ya conseguido se pinta con un degradado de fondo y no
+ * con text-decoration porque eso no se puede animar: o está o no está. Así
+ * crece de izquierda a derecha, que es lo que hace un lápiz de verdad.
+ *
+ * Va sobre .ing-texto, que es una caja de bloque, de modo que en un ingrediente
+ * de dos líneas la raya cruza las dos.
+ */
+.ing-texto {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-repeat: no-repeat;
+  background-position: 0 60%;
+  background-size: 0% 1px;
+  transition: background-size var(--m-medio) var(--m-curva),
+              color var(--m-medio) var(--m-curva);
+}
+.marcado > .ing-texto {
+  background-size: 100% 1px;
+  /* Y se quita la raya de siempre, que ya no hace falta y saldría doble. */
+  text-decoration: none;
+}
+/* Mientras se edita no hay raya: estorba para leer lo que se escribe. */
+.ing-texto:focus { background-size: 0% 1px; }
+
+/* El número del paso hecho se rellena con un latido: en el modo cocina es la
+   única señal de «vas por aquí», y merece verse desde el otro lado de la
+   cocina. */
+@keyframes m-recetas-paso {
+  from { box-shadow: 0 0 0 0 var(--m-velo-acento); }
+  to   { box-shadow: 0 0 0 .7rem transparent; }
+}
+.paso-num { transition: background-color var(--m-corto) var(--m-curva),
+                        color var(--m-corto) var(--m-curva); }
+.paso.marcado .paso-num { animation: m-recetas-paso 520ms var(--m-curva); }
+
+/*
+ * Las cantidades cambian de valor, no de sitio: al mover el escalador lo que se
+ * mueve es un número, y animar la fila entera lo convertiría en un baile. Solo
+ * el color, para que se vea que algo ha cambiado.
+ */
+.ing-cantidad { transition: color var(--m-corto) var(--m-curva); }
+.escalador-cifra { transition: color var(--m-corto) var(--m-curva); }
+
+/* La receta activa del carril crece un pelo, igual que en l-list y en
+   PomboMail: es lo que ata la que dejas con la que coges. */
+.lista-enlace { transition: background-color var(--m-corto) var(--m-curva),
+                            color var(--m-corto) var(--m-curva),
+                            transform var(--m-corto) var(--m-rebote); }
+.lista-enlace.activa { transform: scale(1.02); }
+
+/* Los chips del filtro responden al pulsar como cualquier otro botón, pero sin
+   levantarse: están pegados al carril. */
+.chip { transition: background-color var(--m-corto) var(--m-curva),
+                    border-color var(--m-corto) var(--m-curva),
+                    color var(--m-corto) var(--m-curva); }
+.chip:active { transform: scale(.97); }
+
+/* La barra del modo cocina sube desde abajo: aparece cuando se entra a
+   cocinar, y entrar a cocinar es un cambio de modo, no un cambio de pantalla. */
+@keyframes m-recetas-cocina {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+.cocina-barra:not([hidden]) { animation: m-recetas-cocina var(--m-medio) var(--m-curva) backwards; }
+
+/* El velo del carril en pantalla estrecha; su panel ya trae transición propia. */
+.carril-velo:not([hidden]) { animation: m-vela var(--m-medio) var(--m-curva) backwards; }
+

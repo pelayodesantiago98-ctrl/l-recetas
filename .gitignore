@@ -1,0 +1,5 @@
+node_modules/
+datos/
+*.bak
+*.pre-*.bak
+*.tmp

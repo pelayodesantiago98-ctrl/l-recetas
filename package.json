@@ -1,0 +1,9 @@
+{
+  "name": "l-recetas",
+  "version": "1.0.0",
+  "description": "Recetas — el recetario de casa para lepayimio.es",
+  "private": true,
+  "main": "servidor.js",
+  "scripts": { "start": "node servidor.js" },
+  "dependencies": { "express": "^4.21.2" }
+}

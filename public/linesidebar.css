@@ -1,0 +1,108 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   LineSidebar en el carril del recetario (l-recetas).
+
+   Copiado de l-list: alli el carril son listas y aqui recetas, pero las clases
+   son las mismas (.listas y .lista-enlace) y el componente no necesita saber
+   mas.
+
+   Mismo motor que en l-notes: --ls-effect de 0 a 1 puesta por rAF, y de ahí
+   cuelgan color, desplazamiento y escala, sin transiciones que se
+   desincronicen.
+
+   Aquí sí van los números y las marcas cortas entre elementos: el carril es
+   una lista plana y corta, que es justo donde el componente original luce.
+   Los colores salen de --accent, --fg, --muted y --tenue, las variables que
+   ya cambian con cada tema de la app.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.listas {
+  --ls-linea: 18px;
+  --ls-desvio: 11px;
+  --ls-reposo: .38;
+  --ls-marca-corta: .08;  /* largo de la marca entre elementos, como fracción */
+  --ls-hueco: .35rem;     /* separación vertical entre elementos */
+
+  gap: var(--ls-hueco);
+}
+
+.lista-enlace {
+  position: relative;   /* para la marca corta del hueco */
+  gap: .45rem;
+}
+
+.lista-enlace > .ls-marker {
+  flex: none;
+  width: var(--ls-linea);
+  height: 1px;
+  border-radius: 1px;
+  background: color-mix(in srgb,
+    var(--accent) calc(var(--ls-effect, 0) * 100%),
+    currentColor);
+  opacity: calc(var(--ls-reposo) + var(--ls-effect, 0) * (1 - var(--ls-reposo)));
+  transform-origin: left center;
+  transform: scaleX(calc(.6 + var(--ls-effect, 0) * .4));
+}
+
+.lista-enlace > .ls-index {
+  flex: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb,
+    var(--accent) calc(var(--ls-effect, 0) * 100%),
+    var(--tenue));
+  opacity: calc(.6 + var(--ls-effect, 0) * .4);
+}
+
+/* El margen derecho encoge la caja justo lo que va a desplazarse, para que a
+   pleno efecto el nombre acabe donde acababa antes y no se meta debajo de la
+   cuenta de tareas pendientes. */
+.lista-enlace > .lista-nombre {
+  margin-right: var(--ls-desvio);
+  transform: translateX(calc(var(--ls-effect, 0) * var(--ls-desvio)));
+  color: color-mix(in srgb,
+    var(--accent) calc(var(--ls-effect, 0) * 100%),
+    currentColor);
+}
+
+/* Marca corta centrada en el hueco entre dos listas, alineada con el arranque
+   de las líneas largas (el padding lateral del botón). */
+.lista-enlace:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: calc(100% + var(--ls-hueco) / 2);
+  left: .8rem;
+  width: calc(var(--ls-linea) * var(--ls-marca-corta));
+  height: 1px;
+  background: var(--tenue);
+  opacity: .45;
+  transform-origin: left center;
+  transform: translateY(-50%) scaleX(calc(.7 + var(--ls-effect, 0) * .6));
+  pointer-events: none;
+}
+
+/* La lista abierta se queda con el efecto al máximo, para que se lea como
+   seleccionada aunque el ratón esté en otro sitio. El nombre conserva su
+   color: sobre la pastilla teñida de acento, un texto también de acento se
+   lee peor que el de siempre. */
+.lista-enlace.activa {
+  --ls-effect: 1;
+}
+.lista-enlace.activa > .lista-nombre { color: var(--fg); }
+.lista-enlace.activa > .ls-index { color: var(--muted); }
+
+/* Una lista terminada se apaga: el nombre ya iba en --tenue y la línea la
+   acompaña, para que no destaque más que las que quedan por hacer. */
+.lista-enlace.completa > .ls-marker {
+  opacity: calc(var(--ls-reposo) * .7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lista-enlace > .lista-nombre {
+    margin-right: 0;
+    transform: none;
+  }
+  .lista-enlace:not(:last-child)::after {
+    transform: translateY(-50%);
+  }
+}

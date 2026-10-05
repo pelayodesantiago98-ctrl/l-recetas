@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang=es>
+<head>
+<meta charset=utf-8>
+<meta name=viewport content='width=device-width, initial-scale=1, viewport-fit=cover'>
+<meta name=robots content=noindex>
+<meta name=theme-color content='#0d0f1f'>
+<title>Recetas</title>
+<link rel=icon href=/img/icono.svg type=image/svg+xml>
+<link rel=stylesheet href=/estilo.css?v=1>
+<!-- La capa de acabado: va DESPUES de la hoja de la casa, que es lo que le
+     permite anadir sin redefinir. -->
+<link rel=stylesheet href=/mejoras.css?v=1>
+<link rel=stylesheet href=/linesidebar.css?v=1>
+<!-- Lo propio de un recetario —ingredientes, pasos, escalador de raciones,
+     modo cocina— en hoja aparte y no dentro de estilo.css: son clases nuevas
+     que no redefinen ninguna de la casa, y asi se ve de un vistazo que trajo
+     esta pantalla. Misma pauta que semana.css en l-list. -->
+<link rel=stylesheet href=/recetas.css?v=2>
+<!-- El tema no se aplica aqui: lo marca el servidor en el <html> al servir
+     esta pagina, que es lo unico que evita el fogonazo del tema por defecto. -->
+</head>
+<body>
+
+<header class=barra>
+  <button type=button class='icono-boton solo-estrecho' id=abrir-carril
+          aria-label='Abrir el recetario' aria-expanded=false aria-controls=carril>
+    <svg class="ico ico-hamburguesa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-barra ico-barra-1" d="M4 6l16 0"/><path class="ico-barra ico-barra-2" d="M4 12l16 0"/><path class="ico-barra ico-barra-3" d="M4 18l16 0"/></svg>
+  </button>
+
+  <span class=marca>
+    <svg class="marca-icono ico ico-olla" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-tapa" d="M3 8h18"/><path d="M5 8v9a3 3 0 0 0 3 3h8a3 3 0 0 0 3 -3v-9"/><path class="ico-asa" d="M19 11h2"/><path class="ico-asa" d="M3 11h2"/><path class="ico-vapor" d="M9 4c0 1 1 1 1 2"/><path class="ico-vapor" d="M14 3c0 1.5 1 1.5 1 3"/></svg>
+    Recetas
+  </span>
+
+  <div class=menu-usuario>
+    <!-- Las iniciales van DEBAJO de la foto, no en su lugar. La foto del
+         portal devuelve 404 a quien no tenga una puesta, y sin esto quedaba el
+         icono de imagen rota en la barra. El guion enseña la foto solo cuando
+         de verdad ha cargado; el src lo pone el, no el HTML, para poder
+         enganchar el manejador de error antes de que empiece la descarga.
+         Y tiene que ser en el guion: la CSP de este sitio no admite un
+         onerror= en el atributo. -->
+    <button type=button class=avatar-boton id=boton-menu
+            aria-haspopup=menu aria-expanded=false aria-controls=menu-usuario
+            aria-label='Abrir el menú'>
+      <span class=avatar-iniciales id=avatar-iniciales aria-hidden=true></span>
+      <img class=avatar id=avatar alt='' width=32 height=32 hidden>
+    </button>
+
+    <div class=menu id=menu-usuario role=menu hidden>
+      <span class=menu-quien><b id=menu-nombre>…</b><small>Recetas</small></span>
+
+      <!-- Enlace externo de verdad: sale del subdominio. -->
+      <a class=menu-opcion role=menuitem href='https://lepayimio.es/'><svg class="menu-icono ico ico-inicio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-tejado" d="M5 12l-2 0l9 -9l9 9l-2 0"/><path class="ico-casa" d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path class="ico-puerta" d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg>Inicio de lepayimio</a>
+
+      <!-- El recetario entero en un fichero. Aqui no hay base de datos que
+           respaldar ni boton de copia en ningun sitio, asi que esto es lo que
+           separa «mis recetas» de «mis recetas mientras el VPS siga en pie». -->
+      <a class=menu-opcion role=menuitem href=/api/exportar download><svg class="menu-icono ico ico-bajar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path class="ico-flecha" d="M12 4v11"/><path class="ico-flecha" d="M8 11l4 4l4 -4"/></svg>Descargar mis recetas</a>
+
+      <hr class=menu-linea>
+      <!-- El tema, plegado. Lo que se usa a diario son las recetas, no cambiar
+           de color. -->
+      <button type=button class='menu-opcion menu-desplegar' id=abrir-temas
+              aria-expanded=false aria-controls=submenu-temas>
+        <span class=menu-etiqueta>Tema</span>
+        <span class="tema-muestra tema-mini oscuro" id=tema-actual aria-hidden=true><svg class="ico ico-luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/></svg></span>
+        <svg class="menu-flecha ico ico-flecha-der" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+      </button>
+
+      <div class=submenu id=submenu-temas role=group aria-label=Tema hidden>
+        <button type=button class=menu-tema role=menuitemradio data-tema=oscuro>
+          <span class='tema-muestra oscuro'><svg class="ico ico-luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"/></svg></span>
+          <span class=tema-nombre>Oscuro</span>
+          <span class=tema-tic><svg class="ico ico-tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-marca" d="M5 12l5 5l10 -10"/></svg></span>
+        </button>
+        <button type=button class=menu-tema role=menuitemradio data-tema=crystal>
+          <span class='tema-muestra crystal'><svg class="ico ico-capas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-capa-alta" d="M12 6l-8 4l8 4l8 -4l-8 -4"/><path class="ico-capa-baja" d="M4 14l8 4l8 -4"/></svg></span>
+          <span class=tema-nombre>Crystal</span>
+          <span class=tema-tic><svg class="ico ico-tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-marca" d="M5 12l5 5l10 -10"/></svg></span>
+        </button>
+        <button type=button class=menu-tema role=menuitemradio data-tema=dark-crystal>
+          <span class='tema-muestra dark-crystal'><svg class="ico ico-capas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-capa-alta" d="M12 6l-8 4l8 4l8 -4l-8 -4"/><path class="ico-capa-baja" d="M4 14l8 4l8 -4"/></svg></span>
+          <span class=tema-nombre>Dark Crystal</span>
+          <span class=tema-tic><svg class="ico ico-tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-marca" d="M5 12l5 5l10 -10"/></svg></span>
+        </button>
+      </div>
+
+      <hr class=menu-linea>
+      <!-- Formulario y no fetch: el servidor responde con una redireccion a la
+           pantalla de entrada, y asi el navegador la sigue sola. -->
+      <form method=post action=/salir class=menu-forma>
+        <button type=submit class=menu-opcion role=menuitem><svg class="menu-icono ico ico-salir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-puerta" d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path class="ico-flecha" d="M9 12h12"/><path class="ico-flecha" d="M18 15l3 -3l-3 -3"/></svg>Desconectarse</button>
+      </form>
+    </div>
+  </div>
+</header>
+
+<div class=marco>
+
+  <!-- ── Carril del recetario ───────────────────────────────────────────── -->
+  <nav class=carril id=carril aria-label=Recetario>
+    <form class=nueva-lista id=form-receta>
+      <label class=oculto for=nueva-receta>Nueva receta</label>
+      <input id=nueva-receta placeholder='Nueva receta…' maxlength=120 autocomplete=off>
+      <button type=submit class=icono-boton aria-label='Crear la receta'>
+        <svg class="ico ico-mas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-vertical" d="M12 5l0 14"/><path class="ico-horizontal" d="M5 12l14 0"/></svg>
+      </button>
+    </form>
+
+    <!-- Buscar es lo que convierte un recetario en util: con cuarenta recetas
+         la pregunta ya no es «cual tengo» sino «que hago con dos calabacines»,
+         y por eso el buscador mira tambien dentro de los ingredientes. -->
+    <div class=busca>
+      <svg class="ico ico-lupa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>
+      <label class=oculto for=buscar>Buscar</label>
+      <input id=buscar type=search placeholder='Buscar receta o ingrediente' maxlength=60 autocomplete=off>
+      <button type=button class=busca-limpiar id=limpiar-busca aria-label='Limpiar la búsqueda' hidden>
+        <svg class="ico ico-aspa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <!-- Los filtros los pinta el guion. Arriba el apartado y las favoritas,
+         que son siempre los mismos; debajo las etiquetas que de verdad existen
+         en el recetario, que es la diferencia entre un filtro y una lista de
+         palabras que no llevan a ninguna parte. -->
+    <div class=filtros id=filtros role=group aria-label='Filtrar por apartado'></div>
+    <div class='filtros filtros-tags' id=filtros-tags role=group aria-label='Filtrar por etiqueta'></div>
+
+    <!-- id=listas y no id=recetas: es el contenedor con el que engancha
+         LineSidebar, que es el mismo fichero en toda la casa. Dentro van los
+         dos apartados, cada uno con su rotulo. -->
+    <div class=listas id=listas role=list data-indice=no></div>
+
+    <p class=carril-nota id=carril-nota hidden>
+      Todavía no hay ninguna receta. Escribe un nombre ahí arriba —«Lentejas»,
+      «Tortilla de patatas»— y empieza.
+    </p>
+  </nav>
+
+  <div class=carril-velo id=carril-velo hidden></div>
+
+  <!-- ── La receta abierta ──────────────────────────────────────────────── -->
+  <main class=tablero id=tablero>
+
+    <div class=vacio id=vacio>
+      <svg class="ico ico-olla" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-tapa" d="M3 8h18"/><path d="M5 8v9a3 3 0 0 0 3 3h8a3 3 0 0 0 3 -3v-9"/><path class="ico-asa" d="M19 11h2"/><path class="ico-asa" d="M3 11h2"/><path class="ico-vapor" d="M9 4c0 1 1 1 1 2"/><path class="ico-vapor" d="M14 3c0 1.5 1 1.5 1 3"/></svg>
+      <p id=vacio-texto>Elige una receta de la izquierda.</p>
+    </div>
+
+    <article class=receta id=receta-abierta hidden>
+
+      <div class=cabecera-lista>
+        <button type=button class='icono-boton solo-estrecho' id=volver-carril aria-label='Volver al recetario'>
+          <svg class="ico ico-flecha-izq" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6l6 6"/></svg>
+        </button>
+
+        <!-- El titulo se edita en el sitio: es un input que no lo parece hasta
+             que se toca, para no meter un boton de «renombrar» que solo se usa
+             una vez en la vida de cada receta. Igual que en l-list. -->
+        <input class=titulo-lista id=titulo-receta maxlength=120 aria-label='Nombre de la receta'>
+
+        <button type=button class='icono-boton estrella' id=favorita aria-pressed=false aria-label='Marcar como favorita'>
+          <svg class="ico ico-estrella" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1.002l3.086 -6.253l3.086 6.253l6.9 1.002l-5 4.867l1.179 6.873z"/></svg>
+        </button>
+        <button type=button class=icono-boton id=duplicar aria-label='Duplicar la receta'>
+          <svg class="ico ico-copiar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></svg>
+        </button>
+        <button type=button class=icono-boton id=borrar-receta aria-label='Borrar la receta'>
+          <svg class="ico ico-papelera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-tapa" d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path class="ico-asa" d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg>
+        </button>
+      </div>
+
+      <!-- ── La foto ─────────────────────────────────────────────────────
+           Una receta con foto se reconoce de un vistazo y una sin ella hay
+           que leerla, asi que la foto va arriba y grande. Mientras no haya,
+           en su sitio hay un boton y no un hueco gris: un marco vacio ocupa
+           lo mismo que la foto y no dice nada.
+
+           El campo de fichero va escondido y lo abre el boton: el control que
+           trae el navegador no se puede pintar y cada sistema lo enseña de una
+           manera. Se acepta cualquier imagen; el guion la reduce con un canvas
+           antes de mandarla, que es lo que evita subir los ocho megas que hace
+           un movil moderno. -->
+      <input type=file id=campo-foto class=oculto accept='image/*'>
+
+      <figure class=foto id=foto-caja hidden>
+        <img class=foto-imagen id=foto-imagen alt='' decoding=async>
+        <figcaption class=foto-mando>
+          <button type=button class=boton-lino id=cambiar-foto>Cambiar la foto</button>
+          <button type=button class=boton-lino id=quitar-foto>Quitar</button>
+        </figcaption>
+      </figure>
+
+      <button type=button class=foto-poner id=poner-foto>
+        <svg class="ico ico-imagen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M9 9m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0"/><path class="ico-monte" d="M4 16l4 -4l3 3l4 -4l5 5"/></svg>
+        Añadir una foto
+      </button>
+
+      <label class=oculto for=descripcion>De qué va</label>
+      <input class=descripcion id=descripcion maxlength=300
+             placeholder='De qué va, en una línea (opcional)'>
+
+      <!-- ── La ficha ────────────────────────────────────────────────────
+           Categoria, tiempo y dificultad. Son selects y un numero, no texto
+           libre: lo que se filtra tiene que poder compararse. -->
+      <div class=ficha>
+        <label class=dato>
+          <span class=dato-rotulo>Apartado</span>
+          <select id=apartado class=dato-campo>
+            <option value=Comidas>Comidas</option>
+            <option value=Postres>Postres</option>
+          </select>
+        </label>
+
+        <label class=dato>
+          <span class=dato-rotulo>Tiempo</span>
+          <span class=dato-medida>
+            <input id=tiempo class=dato-campo type=number min=0 max=6000 step=5 inputmode=numeric placeholder='—'>
+            <span class=dato-unidad>min</span>
+          </span>
+        </label>
+
+        <label class=dato>
+          <span class=dato-rotulo>Dificultad</span>
+          <select id=dificultad class=dato-campo>
+            <option value=facil>Fácil</option>
+            <option value=media>Media</option>
+            <option value=dificil>Difícil</option>
+          </select>
+        </label>
+
+        <label class=dato>
+          <span class=dato-rotulo>Para</span>
+          <span class=dato-medida>
+            <input id=raciones class=dato-campo type=number min=1 max=99 step=1 inputmode=numeric>
+            <span class=dato-unidad>raciones</span>
+          </span>
+        </label>
+      </div>
+
+      <!-- Las etiquetas: «fitness», «pollo», «oreo», «proteina»... Son con lo
+           que se busca de verdad, y por eso cada una se convierte sola en un
+           filtro del carril. Los chips los pinta el guion; el input añade. -->
+      <div class=etiquetas-bloque>
+        <div class=etiquetas id=etiquetas></div>
+        <form class=etiqueta-nueva id=form-etiqueta>
+          <label class=oculto for=nueva-etiqueta>Nueva etiqueta</label>
+          <input id=nueva-etiqueta placeholder='+ etiqueta' maxlength=30 autocomplete=off
+                 aria-label='Nueva etiqueta'>
+        </form>
+      </div>
+
+      <!-- ── Ingredientes ───────────────────────────────────────────────── -->
+      <section class=bloque aria-labelledby=rotulo-ingredientes>
+        <div class=bloque-barra>
+          <h2 class=bloque-titulo id=rotulo-ingredientes>Ingredientes</h2>
+
+          <!-- El escalador. Cambia SOLO lo que se lee, nunca lo guardado: la
+               receta sigue escrita para las raciones de la ficha, y esto
+               contesta «y si somos seis» sin tener que reescribirla. -->
+          <div class=escalador>
+            <span class=escalador-rotulo>Calcular para</span>
+            <button type=button class=icono-boton id=menos-raciones aria-label='Una ración menos'>
+              <svg class="ico ico-menos" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l14 0"/></svg>
+            </button>
+            <span class=escalador-cifra id=escalador-cifra aria-live=polite>4</span>
+            <button type=button class=icono-boton id=mas-raciones aria-label='Una ración más'>
+              <svg class="ico ico-mas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-vertical" d="M12 5l0 14"/><path class="ico-horizontal" d="M5 12l14 0"/></svg>
+            </button>
+            <button type=button class=boton-lino id=volver-raciones hidden>Volver a la receta</button>
+          </div>
+        </div>
+
+        <ul class=ingredientes id=ingredientes role=list></ul>
+
+        <form class=nueva-linea id=form-ingrediente>
+          <label class=oculto for=nuevo-ingrediente>Nuevo ingrediente</label>
+          <input id=nuevo-ingrediente maxlength=160 autocomplete=off
+                 placeholder='200 g de harina — y pulsar Intro'>
+          <button type=submit class=boton>Añadir</button>
+        </form>
+      </section>
+
+      <!-- ── Pasos ──────────────────────────────────────────────────────── -->
+      <section class=bloque aria-labelledby=rotulo-pasos>
+        <div class=bloque-barra>
+          <h2 class=bloque-titulo id=rotulo-pasos>Cómo se hace</h2>
+          <button type=button class=boton-lino id=modo-cocina>Modo cocina</button>
+        </div>
+
+        <ol class=pasos id=pasos></ol>
+
+        <form class=nueva-linea id=form-paso>
+          <label class=oculto for=nuevo-paso>Nuevo paso</label>
+          <input id=nuevo-paso maxlength=1000 autocomplete=off
+                 placeholder='El siguiente paso — y pulsar Intro'>
+          <button type=submit class=boton>Añadir</button>
+        </form>
+      </section>
+
+      <!-- ── Notas ──────────────────────────────────────────────────────── -->
+      <section class=bloque aria-labelledby=rotulo-notas>
+        <div class=bloque-barra>
+          <h2 class=bloque-titulo id=rotulo-notas>Notas</h2>
+        </div>
+        <textarea class=notas id=notas rows=3 maxlength=4000
+                  placeholder='Lo que no es un paso: de dónde salió, qué cambiar la próxima vez, con qué acompañarla.'></textarea>
+      </section>
+
+      <!-- El pie: lo unico de esta pantalla que no se escribe a mano. -->
+      <div class=pie>
+        <button type=button class=boton id=cocinada>La he cocinado</button>
+        <span class=pie-cuenta id=pie-cuenta></span>
+      </div>
+    </article>
+  </main>
+
+</div>
+
+<!-- La barra del modo cocina. Vive fuera del articulo porque en ese modo es lo
+     unico fijo de la pantalla. -->
+<div class=cocina-barra id=cocina-barra hidden>
+  <span class=cocina-titulo id=cocina-titulo></span>
+  <span class=cocina-progreso id=cocina-progreso></span>
+  <button type=button class=boton-lino id=salir-cocina>Salir del modo cocina</button>
+</div>
+
+<div class=recado id=recado role=status hidden></div>
+
+<script src=/guion.js?v=2></script>
+<script src=/mejoras.js defer></script>
+<!-- Se engancha al carril que pinta guion.js; no lo pinta el. -->
+<script src=/linesidebar.js?v=1 defer></script>
+</body>
+</html>

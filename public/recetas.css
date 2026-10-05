@@ -1,0 +1,760 @@
+/*
+ * Recetas · lo propio de esta pantalla.
+ *
+ * Hoja aparte de estilo.css y no dentro: aquí no se redefine ni una clase de
+ * la casa —barra, menú, carril, tablero y botones salen de allí sin tocar—,
+ * solo se añade lo que un recetario necesita y una lista de tareas no. Así se
+ * ve de un vistazo qué trajo esta pantalla, y actualizar la hoja común no pisa
+ * nada de aquí. Misma pauta que semana.css en l-list.
+ *
+ * Todo sale de las variables de allí (--fg, --muted, --tenue, --card, --hueco,
+ * --border, --accent, --radio) porque son las que cambian con cada tema. Aquí
+ * no se escribe un color a pelo: uno solo ya rompe los tres temas.
+ */
+
+/* ── Buscador del carril ──────────────────────────────────────────────────── */
+
+.busca {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.6rem;
+  padding: 0.1rem 0.6rem;
+  color: var(--tenue);
+  background: var(--hueco);
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+}
+.busca:focus-within { border-color: var(--accent); background: transparent; }
+.busca svg { width: 1rem; height: 1rem; }
+.busca input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.45rem 0;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+  font-size: 0.85rem;
+}
+.busca input:focus { outline: none; }
+.busca input::placeholder { color: var(--tenue); }
+/* El aspa de limpiar que trae el propio navegador se quita: aparece solo en
+   algunos, con su propio color, y aquí ya hay un botón que hace eso. */
+.busca input::-webkit-search-cancel-button { display: none; }
+
+.busca-limpiar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem; height: 1.5rem;
+  padding: 0;
+  color: var(--tenue);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.busca-limpiar:hover { color: var(--fg); background: var(--hueco); }
+.busca-limpiar svg { width: 0.9rem; height: 0.9rem; }
+
+/* ── Filtros ──────────────────────────────────────────────────────────────── */
+
+.filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.7rem;
+}
+
+.chip {
+  padding: 0.22rem 0.6rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.chip:hover { color: var(--fg); background: var(--hueco); }
+.chip.activo {
+  color: var(--fg);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  font-weight: 600;
+}
+/* El chip de favoritas lleva su estrella y no la palabra: es el único filtro
+   que no es una categoría, y distinguirlo por forma ahorra leerlo. */
+.chip-estrella { display: inline-flex; align-items: center; gap: 0.25rem; }
+.chip-estrella svg { width: 0.85rem; height: 0.85rem; }
+
+/*
+ * El rótulo de cada apartado del carril.
+ *
+ * Pequeño, en versalitas y pegado a sus filas: tiene que separar sin pesar más
+ * que los nombres de las recetas, que es lo que se viene a leer. El primero no
+ * lleva margen arriba, o el carril empezaría con un escalón.
+ */
+.carril-apartado {
+  margin: 0.9rem 0.8rem 0.3rem;
+  color: var(--tenue);
+  font-size: 0.7rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.carril-apartado:first-child { margin-top: 0.1rem; }
+
+/* La miniatura de la fila. Cuadrada y pequeña: es para reconocer la receta de
+   un vistazo, no para mirarla. */
+.lista-foto {
+  flex: none;
+  width: 1.7rem; height: 1.7rem;
+  margin: -0.15rem 0;
+  border-radius: 0.45rem;
+  object-fit: cover;
+  background: var(--hueco);
+}
+
+/* La estrella de las favoritas, delante del nombre. */
+.lista-estrella { flex: none; display: grid; place-items: center; color: var(--accent); }
+.lista-estrella svg { width: 0.8rem; height: 0.8rem; fill: currentColor; }
+
+/* El chip que despliega el resto de etiquetas: es un mando, no un filtro, y
+   por eso va sin borde. */
+.chip-mas { border-style: dashed; }
+
+/* La segunda fila de chips —las etiquetas— va un poco más apretada que la de
+   los apartados: son muchas y cambian solas con el recetario. */
+.filtros-tags { margin-top: -0.35rem; gap: 0.25rem; }
+.filtros-tags .chip { font-size: 0.72rem; padding: 0.18rem 0.5rem; }
+
+/* ── La receta ────────────────────────────────────────────────────────────── */
+
+.receta {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.4rem clamp(1rem, 3vw, 2rem) 5rem;
+}
+
+/* La estrella de la cabecera: hueca mientras no lo sea, rellena cuando sí.
+   Rellenar es más claro que cambiar de color, que en tres temas distintos no
+   siempre se lee. */
+.estrella svg { fill: none; }
+.estrella[aria-pressed=true] { color: var(--accent); }
+.estrella[aria-pressed=true] svg { fill: currentColor; }
+
+/* ── La foto ──────────────────────────────────────────────────────────────── */
+
+/*
+ * Una tira ancha y baja (3:1 y no 16:9) porque debajo tiene que seguir cabiendo
+ * la ficha sin hacer scroll: la foto es para reconocer el plato, no para
+ * ocupar la pantalla. `cover` recorta por los lados, que en una foto de comida
+ * es donde menos pasa nada.
+ */
+.foto {
+  position: relative;
+  margin: 0 0 1rem;
+  border-radius: var(--radio);
+  overflow: hidden;
+  background: var(--hueco);
+  border: 1px solid var(--border);
+}
+.foto-imagen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 1;
+  object-fit: cover;
+}
+/* Los mandos, sobre la propia foto y en su esquina. Encima del degradado que
+   trae la imagen de la comida, un botón de lino suelto se perdería, así que
+   van sobre un velo oscuro propio. */
+.foto-mando {
+  position: absolute;
+  right: 0.5rem; bottom: 0.5rem;
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.25rem;
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+/* Dentro del velo el texto es siempre claro, en los tres temas: el fondo es
+   negro translúcido, no el de la página. */
+.foto-mando .boton-lino { color: #fff; border-color: rgba(255, 255, 255, 0.45); }
+.foto-mando .boton-lino:hover { background: rgba(255, 255, 255, 0.18); }
+
+/* Sin foto no hay marco vacío, hay un botón: un hueco gris ocupa lo mismo y no
+   dice nada. */
+.foto-poner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  padding: 0.4rem 0.8rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 0.7rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.foto-poner:hover { color: var(--fg); background: var(--hueco); border-style: solid; }
+.foto-poner svg { width: 1rem; height: 1rem; }
+
+.descripcion {
+  width: 100%;
+  margin: 0.2rem 0 1.1rem;
+  padding: 0.3rem 0.5rem;
+  margin-left: -0.5rem;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  font-size: 0.95rem;
+}
+.descripcion:hover { background: var(--hueco); }
+.descripcion:focus { background: transparent; border-color: var(--accent); outline: none; }
+.descripcion::placeholder { color: var(--tenue); }
+
+/* ── La ficha ─────────────────────────────────────────────────────────────── */
+
+/*
+ * Cuatro datos en fila, cada uno con su rótulo encima.
+ *
+ * Rótulo arriba y no delante: los cuatro valores quedan alineados a la misma
+ * altura y la fila se lee como una ficha y no como cuatro frases. Con
+ * auto-fit se parten solos en dos filas en el móvil sin una consulta de medios.
+ */
+.ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+  padding: 0.8rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radio);
+  backdrop-filter: var(--cristal);
+  -webkit-backdrop-filter: var(--cristal);
+}
+
+.dato { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.dato-rotulo {
+  color: var(--tenue);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dato-medida { display: flex; align-items: baseline; gap: 0.3rem; min-width: 0; }
+.dato-unidad { color: var(--tenue); font-size: 0.78rem; }
+
+.dato-campo {
+  min-width: 0;
+  width: 100%;
+  padding: 0.2rem 0.3rem;
+  margin-left: -0.3rem;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+.dato-campo:hover { background: var(--hueco); }
+.dato-campo:focus { background: transparent; border-color: var(--accent); outline: none; }
+/* El <select> del sistema trae su propia flecha y su propio fondo; se apagan
+   para que parezca lo que es: un valor que se puede cambiar. Las opciones del
+   desplegable sí las pinta el sistema, y por eso llevan color explícito: sobre
+   fondo transparente heredado salen blancas sobre blanco en Windows. */
+select.dato-campo { appearance: none; cursor: pointer; }
+select.dato-campo option { color: #111; background: #fff; }
+/* Las flechitas del number ocupan sitio y aquí sobran: al lado hay un +/− de
+   verdad en el escalador, y el valor se teclea. */
+input.dato-campo::-webkit-outer-spin-button,
+input.dato-campo::-webkit-inner-spin-button { appearance: none; margin: 0; }
+input.dato-campo[type=number] { appearance: textfield; max-width: 3.5rem; }
+
+/* ── Etiquetas ────────────────────────────────────────────────────────────── */
+
+.etiquetas-bloque {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.6rem;
+}
+.etiquetas { display: contents; }
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.18rem 0.3rem 0.18rem 0.6rem;
+  color: var(--muted);
+  background: var(--hueco);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.76rem;
+}
+.etiqueta-quitar {
+  display: grid;
+  place-items: center;
+  width: 1.1rem; height: 1.1rem;
+  padding: 0;
+  color: var(--tenue);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.etiqueta-quitar:hover { color: var(--danger); }
+.etiqueta-quitar svg { width: 0.75rem; height: 0.75rem; }
+
+.etiqueta-nueva input {
+  width: 6.5rem;
+  padding: 0.18rem 0.6rem;
+  color: var(--fg);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  font-size: 0.76rem;
+}
+.etiqueta-nueva input:focus { border-style: solid; border-color: var(--accent); outline: none; }
+.etiqueta-nueva input::placeholder { color: var(--tenue); }
+
+/* ── Bloques (ingredientes, pasos, notas) ─────────────────────────────────── */
+
+.bloque { margin-bottom: 1.8rem; }
+
+.bloque-barra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+.bloque-titulo {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+/* ── El escalador de raciones ─────────────────────────────────────────────── */
+
+.escalador {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: none;
+}
+.escalador-rotulo { margin-right: 0.15rem; color: var(--tenue); font-size: 0.76rem; }
+.escalador-cifra {
+  min-width: 1.4rem;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+/* Cuando lo que se lee no es lo que dice la receta, el número se marca: si no,
+   apuntar una cantidad escalada creyendo que es la de la receta es un error de
+   un solo clic. */
+.escalador.cambiado .escalador-cifra { color: var(--accent); }
+.escalador .icono-boton { width: 1.7rem; height: 1.7rem; }
+.escalador .icono-boton svg { width: 0.9rem; height: 0.9rem; }
+
+/* ── Ingredientes ─────────────────────────────────────────────────────────── */
+
+.ingredientes { margin: 0; padding: 0; list-style: none; }
+
+.ingrediente {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.6rem;
+}
+.ingrediente:hover { background: var(--hueco); }
+
+/*
+ * La casilla de «ya lo tengo».
+ *
+ * Dibujada a mano y no la del navegador, por lo mismo que en l-list: la del
+ * sistema mide 13 px —imposible con el pulgar— y no se puede pintar del color
+ * del tema. Se llama .casilla igual que allí, y eso es a propósito: la capa de
+ * mejoras ya sabe animarla.
+ *
+ * Lo que marca aquí NO se guarda. Es un apoyo para mientras cocinas o mientras
+ * miras qué falta en la nevera, y guardarlo obligaría a acordarse de limpiarlo
+ * antes de la siguiente vez.
+ */
+.casilla {
+  position: relative;
+  flex: none;
+  width: 1.25rem; height: 1.25rem;
+  margin-top: 0.15rem;
+  padding: 0;
+  background: transparent;
+  border: 2px solid var(--tenue);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.casilla:hover { border-color: var(--accent); }
+.casilla svg {
+  width: 100%; height: 100%;
+  fill: var(--accent-fg);
+  /* 0,6 y no 0: nada aparece de la nada. Escalar desde cero se lee como un
+     fallo de pintado en vez de como una marca que se pone. */
+  transform: scale(0.6);
+  opacity: 0;
+}
+.marcado > .casilla { background: var(--accent); border-color: var(--accent); }
+.marcado > .casilla svg { transform: scale(1); opacity: 1; }
+
+/* La cantidad va delante, en negrita y con cifras de ancho fijo: así las
+   cantidades de toda la lista quedan en columna y se leen de un barrido sin
+   necesidad de una tabla. */
+.ing-cantidad {
+  flex: none;
+  min-width: 4.2rem;
+  color: var(--fg);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.ing-texto {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+.ing-texto:focus { color: var(--fg); border-color: var(--accent); outline: none; padding: 0 0.3rem; margin: 0 -0.3rem; }
+.marcado > .ing-cantidad, .marcado > .ing-texto { color: var(--tenue); }
+.marcado > .ing-texto { text-decoration: line-through; }
+
+/* Lo que no se ha entendido como cantidad —«sal al gusto»— no lleva hueco de
+   cantidad: dejarlo vacío abriría una columna de aire en media lista. */
+.ingrediente.sin-cantidad .ing-cantidad { display: none; }
+
+.linea-quitar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.7rem; height: 1.7rem;
+  padding: 0;
+  color: var(--tenue);
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  /* Escondida hasta que el ratón pasa por la fila: una receta llena de aspas
+     no se lee, se audita. En táctil no hay hover y allí se queda visible. */
+  opacity: 0;
+}
+.ingrediente:hover .linea-quitar,
+.paso:hover .linea-quitar,
+.linea-quitar:focus-visible { opacity: 1; }
+.linea-quitar:hover { color: var(--danger); background: var(--hueco); }
+.linea-quitar svg { width: 0.9rem; height: 0.9rem; }
+
+@media (hover: none) {
+  .linea-quitar { opacity: 0.6; }
+}
+
+/* ── Añadir una línea ─────────────────────────────────────────────────────── */
+
+.nueva-linea {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.9rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  backdrop-filter: var(--cristal);
+  -webkit-backdrop-filter: var(--cristal);
+}
+.nueva-linea:focus-within { border-color: var(--accent); }
+.nueva-linea input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.5rem 0;
+  color: var(--fg);
+  background: transparent;
+  border: 0;
+}
+.nueva-linea input:focus { outline: none; }
+.nueva-linea input::placeholder { color: var(--tenue); }
+
+/* ── Pasos ────────────────────────────────────────────────────────────────── */
+
+.pasos { margin: 0; padding: 0; list-style: none; counter-reset: paso; }
+
+.paso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.5rem;
+  border-radius: 0.6rem;
+}
+.paso:hover { background: var(--hueco); }
+
+/*
+ * El número del paso.
+ *
+ * Con un contador de CSS y no escrito por el guion: al borrar el paso 2, los
+ * de abajo se renumeran solos sin repintar la lista. Un número escrito a mano
+ * es un número que algún día se queda desfasado.
+ */
+.paso-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem; height: 1.5rem;
+  color: var(--muted);
+  background: var(--hueco);
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.paso-num::before { counter-increment: paso; content: counter(paso); }
+.paso-num:hover { color: var(--fg); background: color-mix(in srgb, var(--accent) 25%, transparent); }
+/* Un paso hecho: el número se rellena y el texto se apaga. Igual que la
+   casilla de los ingredientes, y tampoco se guarda. */
+.paso.marcado .paso-num { color: var(--accent-fg); background: var(--accent); }
+.paso.marcado .paso-texto { color: var(--tenue); }
+
+/* El texto y su foto, en columna. El paso es la fila; esto es lo que el paso
+   dice y lo que enseña. */
+.paso-cuerpo {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/*
+ * La foto del paso.
+ *
+ * Pequeña y a la izquierda, no a todo lo ancho: acompaña al texto, no lo
+ * sustituye. Una receta de ocho pasos con ocho fotos a pantalla completa deja
+ * de poder leerse de un vistazo, que es justo lo que se necesita cocinando.
+ */
+.paso-foto {
+  position: relative;
+  margin: 0;
+  max-width: 20rem;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--hueco);
+}
+.paso-foto img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.paso-foto-quitar {
+  position: absolute;
+  top: 0.3rem; right: 0.3rem;
+  display: grid;
+  place-items: center;
+  width: 1.5rem; height: 1.5rem;
+  padding: 0;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+}
+.paso:hover .paso-foto-quitar, .paso-foto-quitar:focus-visible { opacity: 1; }
+.paso-foto-quitar:hover { background: rgba(0, 0, 0, 0.75); }
+.paso-foto-quitar svg { width: 0.8rem; height: 0.8rem; }
+
+@media (hover: none) {
+  .paso-foto-quitar { opacity: 0.75; }
+}
+
+/* La cámara del paso se queda visible cuando ese paso ya tiene foto: es lo que
+   dice «esta se puede cambiar». */
+.paso-camara svg { width: 0.95rem; height: 0.95rem; }
+
+.paso-texto {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.05rem 0;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+.paso-texto:focus { border-color: var(--accent); outline: none; padding: 0.05rem 0.3rem; margin: 0 -0.3rem; }
+
+.paso-mando { flex: none; display: flex; align-items: center; }
+.paso-mover {
+  display: grid;
+  place-items: center;
+  width: 1.4rem; height: 1.7rem;
+  padding: 0;
+  color: var(--tenue);
+  background: transparent;
+  border: 0;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  opacity: 0;
+}
+.paso:hover .paso-mover, .paso-mover:focus-visible { opacity: 1; }
+.paso-mover:hover { color: var(--fg); background: var(--hueco); }
+.paso-mover:disabled { opacity: 0; cursor: default; }
+.paso-mover svg { width: 0.85rem; height: 0.85rem; }
+
+@media (hover: none) {
+  .paso-mover { opacity: 0.6; }
+  .paso-mover:disabled { opacity: 0.15; }
+}
+
+/* ── Notas ────────────────────────────────────────────────────────────────── */
+
+.notas {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 0.8rem;
+  color: var(--fg);
+  background: var(--hueco);
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  line-height: 1.6;
+  /* Crece con el texto —el guion le ajusta la altura— así que la barra propia
+     no hace falta y una barra dentro de otra no se usa bien. */
+  overflow: hidden;
+  resize: none;
+}
+.notas:focus { background: transparent; border-color: var(--accent); outline: none; }
+.notas::placeholder { color: var(--tenue); }
+
+/* ── El pie ───────────────────────────────────────────────────────────────── */
+
+.pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+  padding-top: 0.4rem;
+}
+.pie-cuenta { color: var(--tenue); font-size: 0.82rem; }
+
+/* ── Modo cocina ──────────────────────────────────────────────────────────── */
+
+/*
+ * Lo que cambia cuando se está cocinando de verdad.
+ *
+ * No es otra pantalla: es la misma con los estorbos apagados. Se lee a un
+ * brazo de distancia, con las manos ocupadas y sin ratón, así que:
+ *
+ *   · fuera el carril, la ficha, las etiquetas y todo lo de editar
+ *   · el texto sube de tamaño y las filas separan más
+ *   · los pasos y los ingredientes se marcan a toque, que es lo único que se
+ *     hace aquí
+ *
+ * Y se apaga con Escape, además del botón: es el gesto que ya se tiene
+ * aprendido para «sal de esto».
+ */
+body.cocinando .barra,
+body.cocinando .carril,
+body.cocinando .carril-velo,
+body.cocinando .descripcion,
+body.cocinando .ficha,
+body.cocinando .etiquetas-bloque,
+body.cocinando .nueva-linea,
+body.cocinando .bloque-barra .boton-lino,
+body.cocinando .escalador,
+body.cocinando .linea-quitar,
+body.cocinando .paso-mando,
+body.cocinando .pie,
+body.cocinando .foto-mando,
+body.cocinando .foto-poner,
+body.cocinando #notas:placeholder-shown,
+body.cocinando .cabecera-lista .icono-boton { display: none; }
+
+body.cocinando .marco {
+  top: 0;
+  grid-template-columns: 1fr;
+  /* Sitio para la barra de abajo, que en este modo es la única fija. */
+  bottom: 3.6rem;
+}
+body.cocinando .receta { max-width: 52rem; padding-top: 1.6rem; }
+/* La foto se queda, pero más baja: en modo cocina el sitio es para los pasos. */
+body.cocinando .foto-imagen { aspect-ratio: 5 / 1; }
+body.cocinando .titulo-lista { font-size: 1.8rem; pointer-events: none; }
+body.cocinando .bloque-titulo { font-size: 1.2rem; }
+
+body.cocinando .ingrediente { padding: 0.55rem 0.5rem; font-size: 1.08rem; }
+body.cocinando .ing-cantidad { min-width: 5rem; }
+body.cocinando .casilla { width: 1.5rem; height: 1.5rem; }
+
+body.cocinando .paso { padding: 0.7rem 0.5rem; font-size: 1.12rem; }
+body.cocinando .paso-num { width: 1.9rem; height: 1.9rem; font-size: 0.9rem; }
+body.cocinando .paso-texto { cursor: default; }
+/* En modo cocina la foto del paso crece: es el momento en el que de verdad se
+   mira, para comparar lo que tienes delante con lo que debería ser. */
+body.cocinando .paso-foto { max-width: 26rem; }
+body.cocinando .paso-foto-quitar { display: none; }
+body.cocinando .notas { font-size: 1.02rem; }
+
+.cocina-barra {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: calc(3.6rem + env(safe-area-inset-bottom));
+  padding: 0 1rem;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--card-solido);
+  border-top: 1px solid var(--border);
+  backdrop-filter: var(--cristal);
+  -webkit-backdrop-filter: var(--cristal);
+}
+.cocina-titulo {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 650;
+}
+.cocina-progreso {
+  flex: none;
+  color: var(--tenue);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Estrecho ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 52rem) {
+  .receta { padding-top: 1.1rem; }
+  /* En el móvil la fila de la receta no cabe con las dos cosas, y el nombre
+     gana: la categoría ya está en el filtro de arriba. */
+  .lista-etiqueta { display: none; }
+  .foto-imagen { aspect-ratio: 2 / 1; }
+  .ing-cantidad { min-width: 3.6rem; }
+  .escalador-rotulo { display: none; }
+}
