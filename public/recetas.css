@@ -544,54 +544,6 @@ input.dato-campo[type=number] { appearance: textfield; max-width: 3.5rem; }
   gap: 0.5rem;
 }
 
-/*
- * La foto del paso.
- *
- * Pequeña y a la izquierda, no a todo lo ancho: acompaña al texto, no lo
- * sustituye. Una receta de ocho pasos con ocho fotos a pantalla completa deja
- * de poder leerse de un vistazo, que es justo lo que se necesita cocinando.
- */
-.paso-foto {
-  position: relative;
-  margin: 0;
-  max-width: 20rem;
-  border-radius: 0.6rem;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: var(--hueco);
-}
-.paso-foto img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-}
-.paso-foto-quitar {
-  position: absolute;
-  top: 0.3rem; right: 0.3rem;
-  display: grid;
-  place-items: center;
-  width: 1.5rem; height: 1.5rem;
-  padding: 0;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.5);
-  border: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  opacity: 0;
-}
-.paso:hover .paso-foto-quitar, .paso-foto-quitar:focus-visible { opacity: 1; }
-.paso-foto-quitar:hover { background: rgba(0, 0, 0, 0.75); }
-.paso-foto-quitar svg { width: 0.8rem; height: 0.8rem; }
-
-@media (hover: none) {
-  .paso-foto-quitar { opacity: 0.75; }
-}
-
-/* La cámara del paso se queda visible cuando ese paso ya tiene foto: es lo que
-   dice «esta se puede cambiar». */
-.paso-camara svg { width: 0.95rem; height: 0.95rem; }
-
 .paso-texto {
   flex: 1 1 auto;
   min-width: 0;
@@ -711,10 +663,6 @@ body.cocinando .casilla { width: 1.5rem; height: 1.5rem; }
 body.cocinando .paso { padding: 0.7rem 0.5rem; font-size: 1.12rem; }
 body.cocinando .paso-num { width: 1.9rem; height: 1.9rem; font-size: 0.9rem; }
 body.cocinando .paso-texto { cursor: default; }
-/* En modo cocina la foto del paso crece: es el momento en el que de verdad se
-   mira, para comparar lo que tienes delante con lo que debería ser. */
-body.cocinando .paso-foto { max-width: 26rem; }
-body.cocinando .paso-foto-quitar { display: none; }
 body.cocinando .notas { font-size: 1.02rem; }
 
 .cocina-barra {

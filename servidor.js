@@ -443,7 +443,7 @@ app.post('/api/recetas/:id/duplicar', exige, (req, res) => conReceta(req, res, (
     id: nuevoId(),
     titulo: texto(r.titulo + ' (copia)', 120),
     ingredientes: r.ingredientes.map((i) => ({ ...i, id: nuevoId() })),
-    pasos: r.pasos.map((p) => ({ ...p, id: nuevoId(), foto: null })),
+    pasos: r.pasos.map((p) => ({ ...p, id: nuevoId() })),
     etiquetas: r.etiquetas.slice(),
     favorita: false,
     veces: 0,
@@ -459,14 +459,6 @@ app.post('/api/recetas/:id/duplicar', exige, (req, res) => conReceta(req, res, (
       copia.foto = Date.now();
     } catch { copia.foto = null; }
   }
-  /* Y las de los pasos, cada una a su id nuevo. */
-  r.pasos.forEach((p, i) => {
-    if (!p.foto) return;
-    try {
-      fs.copyFileSync(ficheroFoto(p.id), ficheroFoto(copia.pasos[i].id));
-      copia.pasos[i].foto = Date.now();
-    } catch { copia.pasos[i].foto = null; }
-  });
 
   /* Justo detras de la original y no al final: se acaba de duplicar, se va a
      editar ahora, y buscarla en la Z del carril no tiene ningun sentido. */
@@ -555,7 +547,7 @@ app.post('/api/recetas/:id/pasos', exige, (req, res) => conReceta(req, res, (d, 
   const t = texto((req.body || {}).texto, 1000);
   if (!t) return res.status(400).json({ error: 'El paso está vacío.' });
 
-  const paso = { id: nuevoId(), texto: t, foto: null };
+  const paso = { id: nuevoId(), texto: t };
   r.pasos.push(paso);
   r.editada = new Date().toISOString();
   guardar(req.sesion.id, d);
@@ -581,11 +573,6 @@ app.delete('/api/pasos/:id', exige, (req, res) => {
   if (!hallado) return res.status(404).json({ error: 'Ese paso no existe.' });
 
   hallado.receta.pasos = hallado.receta.pasos.filter((x) => x.id !== req.params.id);
-  /* Y su foto, que si no se queda en el disco sin que nada vuelva a nombrarla. */
-  if (hallado.item.foto) {
-    const f = ficheroFoto(hallado.item.id);
-    if (f) { try { fs.unlinkSync(f); } catch { /* no estaba */ } }
-  }
   hallado.receta.editada = new Date().toISOString();
   guardar(req.sesion.id, d);
   res.json({ ok: true });
@@ -679,47 +666,6 @@ app.put('/api/recetas/:id/foto', exige, cuerpoDeImagen, (req, res) => conReceta(
   guardar(req.sesion.id, d);
   res.json({ receta: r });
 }));
-
-/*
- * La foto de un paso.
- *
- * Una receta sacada de un video se entiende mucho mejor con la imagen de como
- * queda cada paso que con el parrafo solo — «doblar las tiras alternando» se
- * lee tres veces y se ve una. Van en el mismo sitio y con el mismo trato que
- * la foto de la receta: fichero con el id del paso, temporal y rename.
- */
-app.put('/api/pasos/:id/foto', exige, cuerpoDeImagen, (req, res) => {
-  const d = leer(req.sesion.id);
-  const hallado = buscarEn(d, 'pasos', req.params.id);
-  if (!hallado) return res.status(404).json({ error: 'Ese paso no existe.' });
-
-  const fichero = ficheroFoto(hallado.item.id);
-  if (!fichero) return res.status(400).json({ error: 'Ese paso no existe.' });
-  if (!formatoDe(req.body)) return res.status(400).json({ error: 'Eso no es una imagen que yo sepa leer.' });
-
-  fs.mkdirSync(FOTOS, { recursive: true });
-  const tmp = fichero + '.tmp';
-  fs.writeFileSync(tmp, req.body, { mode: 0o640 });
-  fs.renameSync(tmp, fichero);
-
-  hallado.item.foto = Date.now();
-  hallado.receta.editada = new Date().toISOString();
-  guardar(req.sesion.id, d);
-  res.json({ paso: hallado.item });
-});
-
-app.delete('/api/pasos/:id/foto', exige, (req, res) => {
-  const d = leer(req.sesion.id);
-  const hallado = buscarEn(d, 'pasos', req.params.id);
-  if (!hallado) return res.status(404).json({ error: 'Ese paso no existe.' });
-
-  const fichero = ficheroFoto(hallado.item.id);
-  if (fichero) { try { fs.unlinkSync(fichero); } catch { /* ya no estaba */ } }
-  hallado.item.foto = null;
-  hallado.receta.editada = new Date().toISOString();
-  guardar(req.sesion.id, d);
-  res.json({ paso: hallado.item });
-});
 
 app.delete('/api/recetas/:id/foto', exige, (req, res) => conReceta(req, res, (d, r) => {
   const fichero = ficheroFoto(r.id);

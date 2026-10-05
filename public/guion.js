@@ -210,7 +210,6 @@
   var TIC = '<svg class="ico ico-tic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="ico-marca" d="M5 12l5 5l10 -10"/></svg>';
   var ASPA = '<svg class="ico ico-aspa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>';
   var ESTRELLA = '<svg class="ico ico-estrella" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1.002l3.086 -6.253l3.086 6.253l6.9 1.002l-5 4.867l1.179 6.873z"/></svg>';
-  var CAMARA = '<svg class="ico ico-camara" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h2l1.5 -2h7l1.5 2h2a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/><path d="M12 13m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>';
   var ARRIBA = '<svg class="ico ico-arriba" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 15l6 -6l6 6"/></svg>';
   var ABAJO = '<svg class="ico ico-abajo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6"/></svg>';
 
@@ -523,53 +522,19 @@
     }
   }
 
-  /*
-   * A dónde va la próxima foto elegida: a la receta o a un paso.
-   *
-   * Un único <input type=file> para toda la pantalla y una nota de a quién
-   * pertenece el clic. Lo otro sería un campo por paso, y una receta de doce
-   * pasos tendría doce campos escondidos que no hacen nada distinto.
-   */
-  var destinoFoto = { que: 'receta', id: null };
-
-  function pedirFoto(que, id) {
-    destinoFoto = { que: que, id: id };
+  function pedirFoto() {
     $('campo-foto').click();
   }
 
-  $('poner-foto').onclick = function () { pedirFoto('receta', null); };
-  $('cambiar-foto').onclick = function () { pedirFoto('receta', null); };
+  $('poner-foto').onclick = pedirFoto;
+  $('cambiar-foto').onclick = pedirFoto;
   $('campo-foto').onchange = function () {
     var f = $('campo-foto').files && $('campo-foto').files[0];
     /* El campo se vacia despues de leerlo: si no, volver a elegir la MISMA
        foto no dispara change y parece que la app se ha quedado colgada. */
-    if (destinoFoto.que === 'paso') subirFotoDePaso(destinoFoto.id, f);
-    else subirFoto(f);
+    subirFoto(f);
     $('campo-foto').value = '';
   };
-
-  async function subirFotoDePaso(idPaso, fichero) {
-    var r = laAbierta();
-    if (!r || !fichero) return;
-    var paso = r.pasos.find(function (p) { return p.id === idPaso; });
-    if (!paso) return;
-    try {
-      recado('Preparando la foto…');
-      var blob = await reducir(fichero);
-      var resp = await fetch('/api/pasos/' + idPaso + '/foto', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'image/jpeg' },
-        body: blob,
-      });
-      var d = await resp.json().catch(function () { return {}; });
-      if (!resp.ok) throw new Error(d.error || ('Error ' + resp.status));
-      paso.foto = d.paso.foto;
-      pintarPasos(r);
-      recado('Foto del paso guardada.');
-    } catch (e) {
-      recado(e.message, 'malo');
-    }
-  }
 
   $('quitar-foto').onclick = async function () {
     var r = laAbierta();
@@ -747,48 +712,10 @@
       });
       cuerpo.appendChild(txt);
 
-      if (paso.foto) {
-        var figura = document.createElement('figure');
-        figura.className = 'paso-foto';
-
-        var img = document.createElement('img');
-        img.alt = 'Paso ' + (indice + 1);
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        img.src = '/fotos/' + paso.id + '.jpg?v=' + paso.foto;
-        figura.appendChild(img);
-
-        var quitar = document.createElement('button');
-        quitar.type = 'button';
-        quitar.className = 'paso-foto-quitar';
-        quitar.setAttribute('aria-label', 'Quitar la foto de este paso');
-        quitar.innerHTML = ASPA;
-        quitar.onclick = async function () {
-          try {
-            var d = await api('/api/pasos/' + paso.id + '/foto', { method: 'DELETE' });
-            paso.foto = d.paso.foto;
-            pintarPasos(laAbierta());
-          } catch (e) { recado(e.message, 'malo'); }
-        };
-        figura.appendChild(quitar);
-        cuerpo.appendChild(figura);
-      }
-
       li.appendChild(cuerpo);
 
       var mando = document.createElement('span');
       mando.className = 'paso-mando';
-
-      /* La cámara de este paso. Abre el mismo campo de fichero que la foto de
-         la receta, apuntado a este paso: uno solo en toda la página, porque lo
-         que cambia es a dónde va la imagen, no cómo se elige. */
-      var camara = document.createElement('button');
-      camara.type = 'button';
-      camara.className = 'paso-mover paso-camara';
-      camara.innerHTML = CAMARA;
-      camara.setAttribute('aria-label', paso.foto ? 'Cambiar la foto de este paso' : 'Añadir una foto a este paso');
-      camara.onclick = function () { pedirFoto('paso', paso.id); };
-      mando.appendChild(camara);
 
       mando.appendChild(mover(r, indice, -1, ARRIBA, 'Subir este paso'));
       mando.appendChild(mover(r, indice, 1, ABAJO, 'Bajar este paso'));
